@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk as gtk
 import xml.etree.ElementTree as ET
 
 class GtkRenderer(object):
@@ -26,7 +26,7 @@ class GtkRenderer(object):
         child.text = name
         child = ET.SubElement(root, 'span', {'foreground' : 'black'})
         child.text = ": %s" %(value)
-        return ET.tostring(root)
+        return ET.tostring(root, encoding="unicode")
 
     def populate(self, datanode, parent=None):
         treenode = self.treestore.append(parent, [
@@ -53,7 +53,7 @@ class GtkRenderer(object):
             self.populate(child)
 
         sw = gtk.ScrolledWindow()
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.set_policy(gtk.PolicyType.AUTOMATIC, gtk.PolicyType.AUTOMATIC)
         sw.add(self.treeview)
         self.window.add(sw)
         self.treeview.expand_all()
