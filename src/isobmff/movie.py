@@ -286,8 +286,8 @@ class DataEntryUrnBox(box.FullBox):
 
     def parse(self, buf):
         super(DataEntryUrnBox, self).parse(buf)
-        self.name = buf.read_cstring()[0]
-        self.location = buf.read_cstring()[0]
+        self.name = buf.read_cstring()
+        self.location = buf.read_cstring()
 
     def generate_fields(self):
         for x in super(DataEntryUrnBox, self).generate_fields():

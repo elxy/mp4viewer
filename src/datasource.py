@@ -1,3 +1,4 @@
+import operator
 import os
 import sys
 
@@ -16,6 +17,36 @@ class FileSource(object):
 
     def __len__(self):
         return self.size
+
+
+class Bytes(bytes):
+
+    def set_position(self, pos, len=0):
+        self.pos = pos
+        self.len = len
+
+    def get_position(self):
+        return self.pos, self.len
+
+
+class Str(str):
+
+    def set_position(self, pos, len=0):
+        self.pos = pos
+        self.len = len
+
+    def get_position(self):
+        return self.pos, self.len
+
+
+class Int(int):
+
+    def set_position(self, pos, len):
+        self.pos = pos
+        self.len = len
+
+    def get_position(self):
+        return self.pos, self.len
 
 
 class DataBuffer:
@@ -90,8 +121,10 @@ class DataBuffer:
             return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length])
 
     def readstr(self, length):
-        s = self.peekstr(length)
+        s = Str(self.peekstr(length))
+        pos = self.read_ptr
         self.read_ptr += length
+        s.set_position(pos, length)
         return s
 
     def peekbytes(self, length, offset=0):
@@ -104,8 +137,10 @@ class DataBuffer:
             return self.data[self.read_ptr + offset:self.read_ptr + offset + length]
 
     def readbytes(self, length):
-        s = self.peekbytes(length)
+        s = Bytes(self.peekbytes(length))
+        pos = self.read_ptr
         self.read_ptr += length
+        s.set_position(pos, length)
         return s
 
     def read_cstring(self, max_length=-1, encoding='utf-8'):
@@ -122,12 +157,13 @@ class DataBuffer:
             else:
                 byte = ord(self.data[self.read_ptr])
             self.read_ptr += 1
-            len = self.read_ptr - 1
+            len = self.read_ptr - pos
             if not byte:
                 break
             bytes.append(byte)
-        str = bytes.decode(encoding=encoding)
-        return str, len
+        str = Str(bytes.decode(encoding=encoding))
+        str.set_position(pos, len)
+        return str
 
     def peekint(self, bytecount):
         self.checkbuffer(bytecount)
@@ -172,14 +208,20 @@ class DataBuffer:
         return result
 
     def readbits(self, bitcount):
-        res = self.peekbits(bitcount)
+        v = Int(self.peekbits(bitcount))
+        pos = self.read_ptr
         self.read_ptr += (bitcount + self.bit_position) // 8
+        len = self.read_ptr - pos
         self.bit_position = (self.bit_position + bitcount) % 8
-        return res
+        v.set_position(pos, len)
+        return v
 
     def readint(self, bytecount):
-        v = self.peekint(bytecount)
+        v = Int(self.peekint(bytecount))
+        pos = self.read_ptr
         self.read_ptr += bytecount
+        len = self.read_ptr - pos
+        v.set_position(pos, len)
         return v
 
     def readbyte(self):

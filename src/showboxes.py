@@ -57,9 +57,9 @@ def get_tree_from_file(path, args):
 
 
 def main():
-    parser.add_argument('-o', choices=['stdout','gui'], default='stdout',
-        help='output format', dest='output_format')
     parser = argparse.ArgumentParser(description='Process iso-bmff file and list the boxes and their contents')
+    parser.add_argument('--debug', action='store_true', dest='debug', help='enable debug information')
+    parser.add_argument('-o', choices=['stdout', 'gui'], default='stdout', help='output format', dest='output_format')
     parser.add_argument('-e',
                         '--expand-arrays',
                         action='store_false',
@@ -71,7 +71,6 @@ def main():
                         default='on',
                         dest='color',
                         help='turn on/off colors in console based output; on by default')
-    parser.add_argument('--debug', action='store_true', dest='debug', help='enable debug information')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
 

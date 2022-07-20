@@ -65,17 +65,17 @@ class AdobeBootstrap(box.FullBox):
         self.timescale = buf.readint32()
         self.current_media_time = buf.readint64()
         self.smpte_time_code_offset = buf.readint64()
-        self.movie_id = buf.read_cstring()[0]
+        self.movie_id = buf.read_cstring()
         self.server_entry_count = buf.readbyte()
         self.server_entries = []
         for _ in range(self.server_entry_count):
-            self.server_entries.append(buf.read_cstring()[0])
+            self.server_entries.append(buf.read_cstring())
         self.quality_entry_count = buf.readbyte()
         self.quality_entries = []
         for _ in range(self.quality_entry_count):
-            self.quality_entries.append(buf.read_cstring()[0])
-        self.drmdata = buf.read_cstring()[0]
-        self.metadata = buf.read_cstring()[0]
+            self.quality_entries.append(buf.read_cstring())
+        self.drmdata = buf.read_cstring()
+        self.metadata = buf.read_cstring()
         self.segment_run_table_entry_count = buf.readbyte()
         self.segment_run_table_entries = []
         for _ in range(self.segment_run_table_entry_count):
@@ -118,7 +118,7 @@ class AdobeSegmentRunTable(box.FullBox):
         self.quality_entry_count = buf.readbyte()
         self.quality_url_modifiers = []
         for _ in range(self.quality_entry_count):
-            self.quality_url_modifiers.append(buf.read_cstring()[0])
+            self.quality_url_modifiers.append(buf.read_cstring())
         self.segment_entry_count = buf.readint32()
         self.segment_entries = []
         for _ in range(self.segment_entry_count):
@@ -147,7 +147,7 @@ class AdobeFragmentRunTable(box.FullBox):
         self.quality_entry_count = buf.readbyte()
         self.quality_url_modifiers = []
         for _ in range(self.quality_entry_count):
-            self.quality_url_modifiers.append(buf.read_cstring()[0])
+            self.quality_url_modifiers.append(buf.read_cstring())
         self.fragment_entry_count = buf.readint32()
         self.fragment_entries = []
         for _ in range(self.fragment_entry_count):
