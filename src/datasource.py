@@ -94,6 +94,20 @@ class DataBuffer:
         self.read_ptr += length
         return s
 
+    def peekbytes(self, length, offset = 0):
+        self.checkbuffer(length + offset)
+        if self.bit_position:
+            raise Exception("Not aligned: %d" %self.bit_position)
+        if sys.version_info > (3,0):
+            return self.data[self.read_ptr + offset:self.read_ptr + offset + length]
+        else:
+            return self.data[self.read_ptr + offset:self.read_ptr + offset + length]
+
+    def readbytes(self, length):
+        s = self.peekbytes(length)
+        self.read_ptr += length
+        return s
+
     def read_cstring(self, max_length=-1):
         if self.bit_position:
             raise Exception("Not aligned: %d" %self.bit_position)
@@ -154,7 +168,7 @@ class DataBuffer:
 
     def readbits(self, bitcount):
         res = self.peekbits(bitcount)
-        self.read_ptr += (bitcount + self.bit_position) / 8
+        self.read_ptr += (bitcount + self.bit_position) // 8
         self.bit_position = (self.bit_position + bitcount) % 8
         return res
 

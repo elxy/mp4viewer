@@ -454,15 +454,15 @@ class AvcCBox(box.Box):
 
         self.sps = []
         num_of_sps = buf.readbits(5)
-        for x in xrange(num_of_sps):
+        for x in range(num_of_sps):
             sps_len = buf.readint16()
-            self.sps.append(buf.readstr(sps_len))
+            self.sps.append(buf.readbytes(sps_len))
 
         self.pps = []
         num_of_pps = buf.readbyte()
-        for x in xrange(num_of_pps):
+        for x in range(num_of_pps):
             pps_len = buf.readint16()
-            self.pps.append(buf.readstr(pps_len))
+            self.pps.append(buf.readbytes(pps_len))
         self.has_children = False
 
     def generate_fields(self):
@@ -474,9 +474,9 @@ class AvcCBox(box.Box):
         yield ("Level", self.level)
         yield ("Length size minus 1", self.len_minus_1)
         for sps in self.sps:
-            yield ("SPS", sps.encode('hex'))
+            yield ("SPS", sps.hex())
         for pps in self.pps:
-            yield ("PPS", pps.encode('hex'))
+            yield ("PPS", pps.hex())
 
 
 boxmap = {
