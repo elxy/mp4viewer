@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
-import sys
 from . import box
 
+
 class MovieHeader(box.FullBox):
+
     def parse(self, buf):
         super(MovieHeader, self).parse(buf)
         if self.version == 1:
@@ -19,7 +20,7 @@ class MovieHeader(box.FullBox):
         self.rate = buf.readint32()
         self.volume = buf.readint16()
         buf.skipbytes(2 + 8)
-        self.matrix = [[buf.readint32() for j in range(3)] for i in range(3)]
+        self.matrix = [[buf.readint32() for _ in range(3)] for _ in range(3)]
         buf.skipbytes(24)
         self.next_track_id = buf.readint32()
 
@@ -31,13 +32,14 @@ class MovieHeader(box.FullBox):
         yield ("modification time", self.creation_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("timescale", self.timescale)
         yield ("duration", self.duration)
-        yield ("rate", "0x%08X" %(self.rate))
-        yield ("volume", "0x%04X" %(self.volume))
+        yield ("rate", "0x%08X" % (self.rate))
+        yield ("volume", "0x%04X" % (self.volume))
         yield ("matrix", self.matrix)
         yield ("next track id", self.next_track_id)
 
 
 class TrackHeader(box.FullBox):
+
     def parse(self, buf):
         super(TrackHeader, self).parse(buf)
         if self.version == 1:
@@ -57,7 +59,7 @@ class TrackHeader(box.FullBox):
         self.altgroup = buf.readint16()
         self.volume = buf.readint16()
         buf.skipbytes(2)
-        self.matrix = [[buf.readint32() for j in range(3)] for i in range(3)]
+        self.matrix = [[buf.readint32() for _ in range(3)] for i in range(3)]
         self.width = buf.readint32()
         self.height = buf.readint32()
 
@@ -66,18 +68,20 @@ class TrackHeader(box.FullBox):
             yield x
         from .utils import get_utc_from_seconds_since_1904
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
-        yield ("modification time", self.modification_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
+        yield ("modification time", self.modification_time,
+               get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("track id", self.track_id)
         yield ("duration", self.duration)
-        yield ("layer", "0x%04X" %(self.layer))
-        yield ("alternate group", "0x%04X" %(self.altgroup))
-        yield ("volume", "0x%04X" %(self.volume))
+        yield ("layer", "0x%04X" % (self.layer))
+        yield ("alternate group", "0x%04X" % (self.altgroup))
+        yield ("volume", "0x%04X" % (self.volume))
         yield ("matrix", self.matrix)
         yield ("width", self.width)
         yield ("height", self.height)
 
 
 class MediaHeader(box.FullBox):
+
     def parse(self, buf):
         super(MediaHeader, self).parse(buf)
         if self.version == 1:
@@ -99,20 +103,22 @@ class MediaHeader(box.FullBox):
         for x in super(MediaHeader, self).generate_fields():
             yield x
         yield ("creation time", self.creation_time, get_utc_from_seconds_since_1904(self.creation_time).ctime())
-        yield ("modification time", self.modification_time, get_utc_from_seconds_since_1904(self.modification_time).ctime())
+        yield ("modification time", self.modification_time,
+               get_utc_from_seconds_since_1904(self.modification_time).ctime())
         yield ("timescale", self.timescale)
         yield ("duration", self.duration)
         yield ("language", self.language, parse_iso639_2_15bit(self.language))
 
 
 class VideoMediaHeader(box.FullBox):
+
     def parse(self, buf):
         super(VideoMediaHeader, self).parse(buf)
         self.graphicsmode = buf.readint16()
         self.opcolor = []
-        for i in range(0,3):
+        for i in range(0, 3):
             self.opcolor.append(buf.readint16())
-    
+
     def generate_fields(self):
         for x in super(VideoMediaHeader, self).generate_fields():
             yield x
@@ -121,11 +127,12 @@ class VideoMediaHeader(box.FullBox):
 
 
 class SoundMediaHeader(box.FullBox):
+
     def parse(self, buf):
         super(SoundMediaHeader, self).parse(buf)
         self.balance = buf.readint16()
         buf.skipbytes(2)
-    
+
     def generate_fields(self):
         for x in super(SoundMediaHeader, self).generate_fields():
             yield x
@@ -133,13 +140,14 @@ class SoundMediaHeader(box.FullBox):
 
 
 class HintMediaHeader(box.FullBox):
+
     def parse(self, buf):
         super(HintMediaHeader, self).parse(buf)
         self.max_pdu_size = buf.readint16()
         self.avg_pdu_size = buf.readint16()
         self.max_bitrate = buf.readint16()
         self.avg_bitrate = buf.readint16()
-    
+
     def generate_fields(self):
         for x in super(HintMediaHeader, self).generate_fields():
             yield x
@@ -148,7 +156,9 @@ class HintMediaHeader(box.FullBox):
         yield ("Max bitrate", self.max_bitrate)
         yield ("Average bitrate", self.avg_bitrate)
 
+
 class HandlerBox(box.FullBox):
+
     def parse(self, buf):
         super(HandlerBox, self).parse(buf)
         buf.skipbytes(4)
@@ -165,6 +175,7 @@ class HandlerBox(box.FullBox):
 
 
 class SampleEntry(box.Box):
+
     def parse(self, buf):
         super(SampleEntry, self).parse(buf)
         buf.skipbytes(6)
@@ -178,11 +189,13 @@ class SampleEntry(box.Box):
 
 
 class HintSampleEntry(SampleEntry):
+
     def parse(self, buf):
         buf.skipbytes(self.size - self.consumed_bytes)
 
 
 class VisualSampleEntry(SampleEntry):
+
     def parse(self, buf):
         super(VisualSampleEntry, self).parse(buf)
         buf.skipbytes(2 + 2 + 3 * 4)
@@ -204,14 +217,15 @@ class VisualSampleEntry(SampleEntry):
             yield x
         yield ("width", self.width)
         yield ("height", self.height)
-        yield ("horizontal resolution", "0x%08X" %(self.hori_resolution))
-        yield ("vertical resolution", "0x%08X" %(self.vert_resolution))
+        yield ("horizontal resolution", "0x%08X" % (self.hori_resolution))
+        yield ("vertical resolution", "0x%08X" % (self.vert_resolution))
         yield ("frame count", self.frame_count)
         yield ("compressor name", self.compressor_name)
         yield ("depth", self.depth)
 
 
 class AudioSampleEntry(SampleEntry):
+
     def parse(self, buf):
         super(AudioSampleEntry, self).parse(buf)
         # 14496-12 says first eight bits are reserved.
@@ -237,10 +251,11 @@ class AudioSampleEntry(SampleEntry):
             yield x
         yield ("channel count", self.channel_count)
         yield ("sample size", self.sample_size)
-        yield ("sample rate", self.sample_rate, "%d, %d" %(self.sample_rate >> 16, self.sample_rate & 0xFFFF))
+        yield ("sample rate", self.sample_rate, "%d, %d" % (self.sample_rate >> 16, self.sample_rate & 0xFFFF))
 
 
 class SampleDescription(box.FullBox):
+
     def parse(self, buf):
         super(SampleDescription, self).parse(buf)
         media = self.find_parent('mdia')
@@ -268,6 +283,7 @@ class SampleDescription(box.FullBox):
 
 
 class DataEntryUrnBox(box.FullBox):
+
     def parse(self, buf):
         super(DataEntryUrnBox, self).parse(buf)
         self.name = buf.read_cstring()[0]
@@ -281,6 +297,7 @@ class DataEntryUrnBox(box.FullBox):
 
 
 class DataEntryUrlBox(box.FullBox):
+
     def parse(self, buf):
         super(DataEntryUrlBox, self).parse(buf)
         self.location = buf.read_cstring(self.size - self.consumed_bytes)[0]
@@ -292,6 +309,7 @@ class DataEntryUrlBox(box.FullBox):
 
 
 class DataReferenceBox(box.FullBox):
+
     def parse(self, buf):
         super(DataReferenceBox, self).parse(buf)
         self.entry_count = buf.readint32()
@@ -306,6 +324,7 @@ class DataReferenceBox(box.FullBox):
 
 
 class TimeToSampleBox(box.FullBox):
+
     def parse(self, buf):
         super(TimeToSampleBox, self).parse(buf)
         self.entry_count = buf.readint32()
@@ -325,6 +344,7 @@ class TimeToSampleBox(box.FullBox):
 
 
 class SampleToChunkBox(box.FullBox):
+
     def parse(self, buf):
         super(SampleToChunkBox, self).parse(buf)
         self.entry_count = buf.readint32()
@@ -346,6 +366,7 @@ class SampleToChunkBox(box.FullBox):
 
 
 class ChunkOffsetBox(box.FullBox):
+
     def parse(self, buf):
         super(ChunkOffsetBox, self).parse(buf)
         self.entry_count = buf.readint32()
@@ -359,6 +380,7 @@ class ChunkOffsetBox(box.FullBox):
 
 
 class SyncSampleBox(box.FullBox):
+
     def parse(self, buf):
         super(SyncSampleBox, self).parse(buf)
         self.entry_count = buf.readint32()
@@ -372,6 +394,7 @@ class SyncSampleBox(box.FullBox):
 
 
 class SampleSizeBox(box.FullBox):
+
     def parse(self, buf):
         super(SampleSizeBox, self).parse(buf)
         self.sample_size = buf.readint32()
@@ -391,6 +414,7 @@ class SampleSizeBox(box.FullBox):
 
 
 class CompactSampleSizeBox(box.FullBox):
+
     def parse(self, buf):
         super(CompactSampleSizeBox, self).parse(buf)
         buf.skipbytes(3)
@@ -410,19 +434,22 @@ class CompactSampleSizeBox(box.FullBox):
 
 
 class MovieExtendsHeader(box.FullBox):
+
     def parse(self, buf):
         super(MovieExtendsHeader, self).parse(buf)
         if self.version == 1:
             self.fragment_duration = buf.readint64()
         else:
             self.fragment_duration = buf.readint32()
-    
+
     def generate_fields(self):
         for x in super(MovieExtendsHeader, self).generate_fields():
             yield x
         yield ("Fragment duration", self.fragment_duration)
 
+
 class TrackExtendsBox(box.FullBox):
+
     def parse(self, buf):
         super(TrackExtendsBox, self).parse(buf)
         self.track_id = buf.readint32()
@@ -430,7 +457,7 @@ class TrackExtendsBox(box.FullBox):
         self.default_sample_duration = buf.readint32()
         self.default_sample_size = buf.readint32()
         self.default_sample_flags = buf.readint32()
-    
+
     def generate_fields(self):
         for x in super(TrackExtendsBox, self).generate_fields():
             yield x
@@ -439,9 +466,10 @@ class TrackExtendsBox(box.FullBox):
         yield ("Default sample duration", self.default_sample_duration)
         yield ("Default sample size", self.default_sample_size)
         yield ("Default sample flags", self.default_sample_flags)
-    
+
 
 class AvcCBox(box.Box):
+
     def parse(self, buf):
         super(AvcCBox, self).parse(buf)
         self.configuration_level = buf.readbyte()
@@ -480,24 +508,24 @@ class AvcCBox(box.Box):
 
 
 boxmap = {
-    'mvhd' : MovieHeader,
-    'tkhd' : TrackHeader,
-    'mdhd' : MediaHeader,
-    'vmhd' : VideoMediaHeader,
-    'smhd' : SoundMediaHeader,
-    'hmhd' : HintMediaHeader,
-    'hdlr' : HandlerBox,
-    'stsd' : SampleDescription,
-    'dref' : DataReferenceBox,
-    'stts' : TimeToSampleBox,
-    'stsc' : SampleToChunkBox,
-    'stco' : ChunkOffsetBox,
-    'stss' : SyncSampleBox,
-    'stsz' : SampleSizeBox,
-    'stz2' : CompactSampleSizeBox,
-    'url ' : DataEntryUrlBox,
-    'urn ' : DataEntryUrnBox,
-    'mehd' : MovieExtendsHeader,
-    'trex' : TrackExtendsBox,
-    'avcC' : AvcCBox,
-    }
+    'mvhd': MovieHeader,
+    'tkhd': TrackHeader,
+    'mdhd': MediaHeader,
+    'vmhd': VideoMediaHeader,
+    'smhd': SoundMediaHeader,
+    'hmhd': HintMediaHeader,
+    'hdlr': HandlerBox,
+    'stsd': SampleDescription,
+    'dref': DataReferenceBox,
+    'stts': TimeToSampleBox,
+    'stsc': SampleToChunkBox,
+    'stco': ChunkOffsetBox,
+    'stss': SyncSampleBox,
+    'stsz': SampleSizeBox,
+    'stz2': CompactSampleSizeBox,
+    'url ': DataEntryUrlBox,
+    'urn ': DataEntryUrnBox,
+    'mehd': MovieExtendsHeader,
+    'trex': TrackExtendsBox,
+    'avcC': AvcCBox,
+}

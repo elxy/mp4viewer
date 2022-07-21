@@ -3,7 +3,9 @@
 from __future__ import print_function
 from datasource import DataBuffer
 
+
 class DataBufferTest(object):
+
     def __init__(self, path):
         self.path = path
 
@@ -13,11 +15,11 @@ class DataBufferTest(object):
 
             actual = self.data_buffer.readint32()
             value = 0xA5A5A5A5
-            assert actual == value, "Expected %x, got %x" %(value, actual)
+            assert actual == value, "Expected %x, got %x" % (value, actual)
 
             actual = self.data_buffer.readint64()
             value = 0xA5A5A5A5A5A5A5A5
-            assert actual == value, "Expected %x, got %x" %(value, actual)
+            assert actual == value, "Expected %x, got %x" % (value, actual)
 
             self.checkreadbits(32, 0xA5A5A5A5)
             self.checkreadbits(16, 0xA5A5)
@@ -39,7 +41,7 @@ class DataBufferTest(object):
 
     def checkreadbits(self, count, value):
         actual = self.data_buffer.readbits(count)
-        assert actual == value, "Expected 0x%X, got 0x%X" %(value, actual)
+        assert actual == value, "Expected 0x%X, got 0x%X" % (value, actual)
 
 
 if __name__ == '__main__':

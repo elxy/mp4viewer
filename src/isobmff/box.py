@@ -1,81 +1,95 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-import sys
 
 def string_to_hex(s):
-    x = [ "%02x" %ord(ch) for ch in s]
+    x = ["%02x" % ord(ch) for ch in s]
     return " ".join(x)
+
 
 # Set container flag for pure containers. Boxes with data and children should be
 # handled in their own subclass
 class Box(object):
     box_names = {
         #iso bmff box types
-        'ftyp' : 'File type',
-        'moov' : 'Movie container',
-        'moof' : 'Movie fragment',
-        'mfra' : 'Movie fragment random access',
-        'mfhd' : 'Movie fragment header',
-        'traf' : 'Track fragment',
-        'tfhd' : 'Track fragment header',
-        'trun' : 'Track fragment run',
-        'saiz' : 'Sample auxiliary information sizes',
-        'saio' : 'Sample auxiliary information offsets',
-        'tfdt' : 'Track fragment decode time',
-        'trak' : 'Track container',
-        'mdia' : 'Media container',
-        'minf' : 'Media information box',
-        'dinf' : 'Data information box',
-        'vmhd' : 'Video media header',
-        'smhd' : 'Sound media header',
-        'hmhd' : 'hint media header',
-        'mvhd' : 'Movie header',
-        'tkhd' : 'Track header',
-        'mdhd' : 'Media header',
-        'stbl' : 'Sample table',
-        'hdlr' : 'Handler box',
-        'stsd' : 'Sample description',
-        'dref' : 'Data reference box',
-        'url ' : 'Data entry URL box',
-        'stts' : 'Time-to-sample box',
-        'stsc' : 'Sample-to-chunk box',
-        'stco' : 'Chunk offset box',
-        'stss' : 'Sync sample box',
-        'stsz' : 'Sample size box',
-        'stz2' : 'Compact sample size box',
-        'mvex' : 'Movie extends box',
-        'mehd' : 'Movie extends header box',
-        'trex' : 'Track extends defaults',
-        'udta' : 'User data',
-        'skip' : 'Skip',
-        'free' : 'Free',
-        'mdat' : 'Media data container',
-        'styp' : 'Segment type',
-        'sidx' : 'Segment index',
-        'ssix' : 'Subsegment index',
-        'sbgp' : 'Sample to group box',
-        'sgpd' : 'Sample group description box',
+        'ftyp': 'File type',
+        'moov': 'Movie container',
+        'moof': 'Movie fragment',
+        'mfra': 'Movie fragment random access',
+        'mfhd': 'Movie fragment header',
+        'traf': 'Track fragment',
+        'tfhd': 'Track fragment header',
+        'trun': 'Track fragment run',
+        'saiz': 'Sample auxiliary information sizes',
+        'saio': 'Sample auxiliary information offsets',
+        'tfdt': 'Track fragment decode time',
+        'trak': 'Track container',
+        'mdia': 'Media container',
+        'minf': 'Media information box',
+        'dinf': 'Data information box',
+        'vmhd': 'Video media header',
+        'smhd': 'Sound media header',
+        'hmhd': 'hint media header',
+        'mvhd': 'Movie header',
+        'tkhd': 'Track header',
+        'mdhd': 'Media header',
+        'stbl': 'Sample table',
+        'hdlr': 'Handler box',
+        'stsd': 'Sample description',
+        'dref': 'Data reference box',
+        'url ': 'Data entry URL box',
+        'stts': 'Time-to-sample box',
+        'stsc': 'Sample-to-chunk box',
+        'stco': 'Chunk offset box',
+        'stss': 'Sync sample box',
+        'stsz': 'Sample size box',
+        'stz2': 'Compact sample size box',
+        'mvex': 'Movie extends box',
+        'mehd': 'Movie extends header box',
+        'trex': 'Track extends defaults',
+        'udta': 'User data',
+        'skip': 'Skip',
+        'free': 'Free',
+        'mdat': 'Media data container',
+        'styp': 'Segment type',
+        'sidx': 'Segment index',
+        'ssix': 'Subsegment index',
+        'sbgp': 'Sample to group box',
+        'sgpd': 'Sample group description box',
         #common encryption boxes
-        'tenc' : 'Track encryption box',
-        'senc' : 'Sample encryption box',
-        'pssh' : 'Protection system specific header box',
-        'schm' : 'Scheme type box',
-        'schi' : 'Scheme information box',
-        'sinf' : 'Protection scheme information box',
-        'frma' : 'Original format box',
+        'tenc': 'Track encryption box',
+        'senc': 'Sample encryption box',
+        'pssh': 'Protection system specific header box',
+        'schm': 'Scheme type box',
+        'schi': 'Scheme information box',
+        'sinf': 'Protection scheme information box',
+        'frma': 'Original format box',
         #flv specific boxes
-        'afra' : 'Adobe fragment random access box',
-        'abst' : 'Adobe bootstrap info box',
-        'asrt' : 'Adobe segment run table box',
-        'afrt' : 'Adobe fragment run table box',
+        'afra': 'Adobe fragment random access box',
+        'abst': 'Adobe bootstrap info box',
+        'asrt': 'Adobe segment run table box',
+        'afrt': 'Adobe fragment run table box',
     }
     container_boxes = [
-        'moov', 'trak', 'edts', 'mdia', 'minf', 'dinf', 'stbl', 'mvex',
-        'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf', 'schi',
+        'moov',
+        'trak',
+        'edts',
+        'mdia',
+        'minf',
+        'dinf',
+        'stbl',
+        'mvex',
+        'moof',
+        'traf',
+        'mfra',
+        'skip',
+        'meta',
+        'ipro',
+        'sinf',
+        'schi',
     ]
 
-    def __init__(self, buf, parent=None, is_container = False, debug=False):
+    def __init__(self, buf, parent=None, is_container=False, debug=False):
         self.parent = parent
         pos = buf.current_position()
         self.buffer_offset = pos
@@ -87,8 +101,8 @@ class Box(object):
         if self.has_children:
             self.parse_children(buf)
         if self.consumed_bytes < self.size:
-            print("Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d" %(
-                    self, self.consumed_bytes, self.size - self.consumed_bytes))
+            print("Skipping tailing bytes: Possible parse error (or unhandled box) in %s: consumed %d, skip %d" %
+                  (self, self.consumed_bytes, self.size - self.consumed_bytes))
             buf.skipbytes(self.size - self.consumed_bytes)
             self.consumed_bytes = self.size
 
@@ -106,8 +120,8 @@ class Box(object):
         # Basic sanity check
         if self.parent is not None:
             if self.parent.consumed_bytes + size > self.parent.size:
-                raise Exception("Size error: parent %d, consumed %d, child says %d" %(
-                    self.parent.size, self.parent.consumed_bytes, size))
+                raise Exception("Size error: parent %d, consumed %d, child says %d" %
+                                (self.parent.size, self.parent.consumed_bytes, size))
 
         self.size = size
         self.boxtype = boxtype
@@ -127,7 +141,7 @@ class Box(object):
             except Exception as e:
                 if self.debug:
                     raise e
-                print("Error parsing children of %s: %s" %(self, e))
+                print("Error parsing children of %s: %s" % (self, e))
                 buf.seekto(self.buffer_offset + self.size)
                 self.consumed_bytes = self.size
 
@@ -154,7 +168,7 @@ class Box(object):
         yield ("size", self.size)
 
     def __str__(self):
-        return "%s (%d bytes)" %(self.boxtype, self.size)
+        return "%s (%d bytes)" % (self.boxtype, self.size)
 
     @staticmethod
     def getnextbox(buf, parent=None, debug=False):
@@ -163,7 +177,7 @@ class Box(object):
         from . import flv
         from . import cenc
         boxmap = {
-            'ftyp' : FileType,
+            'ftyp': FileType,
         }
         boxmap.update(movie.boxmap)
         boxmap.update(fragment.boxmap)
@@ -190,6 +204,7 @@ class Box(object):
 
 
 class FullBox(Box):
+
     def parse(self, buf):
         super(FullBox, self).parse(buf)
         self.version = buf.readbyte()
@@ -200,10 +215,11 @@ class FullBox(Box):
         for x in super(FullBox, self).generate_fields():
             yield x
         yield ("version", self.version)
-        yield ("flags", "0x%06X" %self.flags)
+        yield ("flags", "0x%06X" % self.flags)
 
 
 class FileType(Box):
+
     def parse(self, buf):
         super(FileType, self).parse(buf)
         self.major_brand = buf.readstr(4)
@@ -221,7 +237,5 @@ class FileType(Box):
         yield ("brands", ','.join(self.brands))
 
     def __str__(self):
-        return super(FileType, self).__str__() + " %s %d with %d brands %s" %(
-                self.major_brand, self.minor_version, len(self.brands), ','.join(self.brands)
-            )
-
+        return super(FileType, self).__str__() + " %s %d with %d brands %s" % (self.major_brand, self.minor_version,
+                                                                               len(self.brands), ','.join(self.brands))

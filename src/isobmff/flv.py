@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
-import sys
 from . import box
 
+
 class AdobeFragmentRandomAccess(box.FullBox):
+
     def parse(self, buf):
         super(AdobeFragmentRandomAccess, self).parse(buf)
         val = buf.readbyte()
@@ -13,46 +14,47 @@ class AdobeFragmentRandomAccess(box.FullBox):
         self.timescale = buf.readint32()
         self.entry_count = buf.readint32()
         self.entries = []
-        for i in range(self.entry_count):
+        for _ in range(self.entry_count):
             time = buf.readint64()
             if self.long_offsets:
                 offset = buf.readint64()
             else:
                 offset = buf.readint32()
-            self.entries.append((time,offset))
+            self.entries.append((time, offset))
         self.global_entry_count = 0
         self.global_entries = []
         if self.global_entries_present:
             self.global_entry_count = buf.readint32()
-        for i in range(self.global_entry_count):
+        for _ in range(self.global_entry_count):
             time = buf.readint64()
             if self.long_ids:
                 eid = buf.readint32()
             else:
                 eid = buf.readint16()
-            self.entries.append((time,eid))
-    
+            self.entries.append((time, eid))
+
     def generate_fields(self):
         for x in super(AdobeFragmentRandomAccess, self).generate_fields():
             yield x
-        yield("Long IDs", self.long_ids)
-        yield("Long offsets", self.long_offsets)
-        yield("Global entries present", self.global_entries_present)
-        yield("Timescale", self.timescale)
-        yield("Entry count", self.entry_count)
+        yield ("Long IDs", self.long_ids)
+        yield ("Long offsets", self.long_offsets)
+        yield ("Global entries present", self.global_entries_present)
+        yield ("Timescale", self.timescale)
+        yield ("Entry count", self.entry_count)
         i = 0
         for e in self.entries:
             i += 1
-            yield("  Entry %d" %(i), "time=%d, offset=%d" %e)
+            yield ("  Entry %d" % (i), "time=%d, offset=%d" % e)
         if self.global_entries_present:
-            yield("Global entry count", self.global_entry_count)
+            yield ("Global entry count", self.global_entry_count)
             i = 0
             for e in self.global_entries:
                 i += 1
-                yield( "  Global entry %d" %(i), "time=%d, id=%d" %e)
+                yield ("  Global entry %d" % (i), "time=%d, id=%d" % e)
 
 
 class AdobeBootstrap(box.FullBox):
+
     def parse(self, buf):
         super(AdobeBootstrap, self).parse(buf)
         self.bootstrap_info_version = buf.readint32()
@@ -66,21 +68,21 @@ class AdobeBootstrap(box.FullBox):
         self.movie_id = buf.read_cstring()[0]
         self.server_entry_count = buf.readbyte()
         self.server_entries = []
-        for i in range(self.server_entry_count):
+        for _ in range(self.server_entry_count):
             self.server_entries.append(buf.read_cstring()[0])
         self.quality_entry_count = buf.readbyte()
         self.quality_entries = []
-        for i in range(self.quality_entry_count):
+        for _ in range(self.quality_entry_count):
             self.quality_entries.append(buf.read_cstring()[0])
         self.drmdata = buf.read_cstring()[0]
         self.metadata = buf.read_cstring()[0]
         self.segment_run_table_entry_count = buf.readbyte()
         self.segment_run_table_entries = []
-        for i in range(self.segment_run_table_entry_count):
+        for _ in range(self.segment_run_table_entry_count):
             self.segment_run_table_entries.append(AdobeSegmentRunTable(buf))
         self.fragment_run_table_entry_count = buf.readbyte()
         self.fragment_run_table_entries = []
-        for i in range(self.fragment_run_table_entry_count):
+        for _ in range(self.fragment_run_table_entry_count):
             self.fragment_run_table_entries.append(AdobeFragmentRunTable(buf))
 
     def generate_fields(self):
@@ -110,19 +112,20 @@ class AdobeBootstrap(box.FullBox):
 
 
 class AdobeSegmentRunTable(box.FullBox):
+
     def parse(self, buf):
         super(AdobeSegmentRunTable, self).parse(buf)
         self.quality_entry_count = buf.readbyte()
         self.quality_url_modifiers = []
-        for i in range(self.quality_entry_count):
+        for _ in range(self.quality_entry_count):
             self.quality_url_modifiers.append(buf.read_cstring()[0])
         self.segment_entry_count = buf.readint32()
         self.segment_entries = []
-        for i in range(self.segment_entry_count):
+        for _ in range(self.segment_entry_count):
             first_segment = buf.readint32()
             fragments_per_segment = buf.readint32()
             self.segment_entries.append((first_segment, fragments_per_segment))
-    
+
     def generate_fields(self):
         for x in super(AdobeSegmentRunTable, self).generate_fields():
             yield x
@@ -133,29 +136,30 @@ class AdobeSegmentRunTable(box.FullBox):
         i = 0
         for e in self.segment_entries:
             i += 1
-            yield ("Entry %d" %(i),
-                    "First segment=%d, Fragments per segment=%d" %e)
+            yield ("Entry %d" % (i), "First segment=%d, Fragments per segment=%d" % e)
 
 
 class AdobeFragmentRunTable(box.FullBox):
+
     def parse(self, buf):
         super(AdobeFragmentRunTable, self).parse(buf)
         self.timescale = buf.readint32()
         self.quality_entry_count = buf.readbyte()
         self.quality_url_modifiers = []
-        for i in range(self.quality_entry_count):
+        for _ in range(self.quality_entry_count):
             self.quality_url_modifiers.append(buf.read_cstring()[0])
         self.fragment_entry_count = buf.readint32()
         self.fragment_entries = []
-        for i in range(self.fragment_entry_count):
+        for _ in range(self.fragment_entry_count):
             first_fragment = buf.readint32()
             first_fragment_timestamp = buf.readint64()
             fragment_duration = buf.readint32()
             discontinuity_idicator = 0
             if fragment_duration == 0:
                 discontinuity_idicator = buf.readbyte()
-            self.fragment_entries.append((first_fragment, first_fragment_timestamp, fragment_duration, discontinuity_idicator))
-    
+            self.fragment_entries.append(
+                (first_fragment, first_fragment_timestamp, fragment_duration, discontinuity_idicator))
+
     def generate_fields(self):
         for x in super(AdobeFragmentRunTable, self).generate_fields():
             yield x
@@ -167,13 +171,13 @@ class AdobeFragmentRunTable(box.FullBox):
         i = 0
         for e in self.fragment_entries:
             i += 1
-            yield("Entry %d" %(i),
-                    "first fragment=%d, first fragment timestamp=%d, fragment duration=%d, discontinuity=%d" %e)
+            yield ("Entry %d" % (i),
+                   "first fragment=%d, first fragment timestamp=%d, fragment duration=%d, discontinuity=%d" % e)
 
 
 boxmap = {
-        'afra' : AdobeFragmentRandomAccess,
-        'abst' : AdobeBootstrap,
-        'asrt' : AdobeSegmentRunTable,
-        'afrt' : AdobeFragmentRunTable,
-    }
+    'afra': AdobeFragmentRandomAccess,
+    'abst': AdobeBootstrap,
+    'asrt': AdobeSegmentRunTable,
+    'afrt': AdobeFragmentRunTable,
+}

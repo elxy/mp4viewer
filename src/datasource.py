@@ -1,8 +1,9 @@
-
 import os
 import sys
 
+
 class FileSource(object):
+
     def __init__(self, f):
         self.file = f
         self.size = os.fstat(f.fileno()).st_size
@@ -19,6 +20,7 @@ class FileSource(object):
 
 class DataBuffer:
     CHUNK_SIZE = 50
+
     def __init__(self, source):
         self.source = source
         self.reset()
@@ -32,8 +34,7 @@ class DataBuffer:
         self.data = b''
 
     def __str__(self):
-        return "<datasource size %d, readptr %d, offset %d>" %(
-            self.buf_size, self.read_ptr, self.stream_offset)
+        return "<datasource size %d, readptr %d, offset %d>" % (self.buf_size, self.read_ptr, self.stream_offset)
 
     def current_position(self):
         return self.stream_offset + self.read_ptr
@@ -41,27 +42,26 @@ class DataBuffer:
     def remaining_bytes(self):
         return len(self.source) - (self.stream_offset + self.read_ptr)
 
-    def readmore(self, minimum = 0):
+    def readmore(self, minimum=0):
         req_bytes = max(minimum, DataBuffer.CHUNK_SIZE)
         data = self.source.read(req_bytes)
         remaining_bytes = self.buf_size - self.read_ptr
         if len(data):
             # print "Read %d" %(len(data))
-            self.data = b''.join([ self.data[self.read_ptr:] , data])
+            self.data = b''.join([self.data[self.read_ptr:], data])
             self.buf_size = remaining_bytes + len(data)
             self.stream_offset += self.read_ptr
             self.read_ptr = 0
             if self.buf_size < minimum:
-                raise Exception("Not enough data for %d bytes; read %d, remaining %d",
-                    minimum, len(data), self.buf_size)
+                raise Exception("Not enough data for %d bytes; read %d, remaining %d", minimum, len(data),
+                                self.buf_size)
         else:
             # print "Min %d, size %d, pos %d, offset %d" %(
             #    min, self.buf_size, self.read_ptr, self.stream_offset)
-            raise Exception("Read nothing: req %d, offset %d, read_ptr %d" %(
-                minimum, self.stream_offset, self.read_ptr))
+            raise Exception("Read nothing: req %d, offset %d, read_ptr %d" %
+                            (minimum, self.stream_offset, self.read_ptr))
 
     def hasmore(self):
-        import traceback
         if self.read_ptr == self.buf_size:
             try:
                 self.readmore()
@@ -71,7 +71,7 @@ class DataBuffer:
 
     def checkbuffer(self, length):
         if length < 0:
-            raise Exception("Negative bytes to check %d" %(length))
+            raise Exception("Negative bytes to check %d" % (length))
         remaining_bytes = self.buf_size - self.read_ptr
         if remaining_bytes < length:
             self.readmore(length - remaining_bytes)
@@ -80,12 +80,12 @@ class DataBuffer:
         if remaining_bytes < length:
             raise Exception("Attempt to read beyond buffer %d %d %d", self.read_ptr, self.buf_size, length)
 
-    def peekstr(self, length, offset = 0):
+    def peekstr(self, length, offset=0):
         self.checkbuffer(length + offset)
         if self.bit_position:
-            raise Exception("Not aligned: %d" %self.bit_position)
-        if sys.version_info > (3,0):
-            return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length], 'utf-8' )
+            raise Exception("Not aligned: %d" % self.bit_position)
+        if sys.version_info > (3, 0):
+            return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length], 'utf-8')
         else:
             return str(self.data[self.read_ptr + offset:self.read_ptr + offset + length])
 
@@ -94,11 +94,11 @@ class DataBuffer:
         self.read_ptr += length
         return s
 
-    def peekbytes(self, length, offset = 0):
+    def peekbytes(self, length, offset=0):
         self.checkbuffer(length + offset)
         if self.bit_position:
-            raise Exception("Not aligned: %d" %self.bit_position)
-        if sys.version_info > (3,0):
+            raise Exception("Not aligned: %d" % self.bit_position)
+        if sys.version_info > (3, 0):
             return self.data[self.read_ptr + offset:self.read_ptr + offset + length]
         else:
             return self.data[self.read_ptr + offset:self.read_ptr + offset + length]
@@ -110,16 +110,16 @@ class DataBuffer:
 
     def read_cstring(self, max_length=-1, encoding='utf-8'):
         if self.bit_position:
-            raise Exception("Not aligned: %d" %self.bit_position)
+            raise Exception("Not aligned: %d" % self.bit_position)
         bytes = bytearray(b'')
         pos = self.read_ptr
         len = self.read_ptr - pos
         while self.hasmore():
             if len == max_length:
                 break
-            if sys.version_info > (3,0):
+            if sys.version_info > (3, 0):
                 byte = self.data[self.read_ptr]
-            else :
+            else:
                 byte = ord(self.data[self.read_ptr])
             self.read_ptr += 1
             len = self.read_ptr - 1
@@ -132,12 +132,12 @@ class DataBuffer:
     def peekint(self, bytecount):
         self.checkbuffer(bytecount)
         if self.bit_position:
-            raise Exception("Not aligned: %d" %self.bit_position)
+            raise Exception("Not aligned: %d" % self.bit_position)
         v = 0
         for i in range(0, bytecount):
-            if sys.version_info > (3,0):
+            if sys.version_info > (3, 0):
                 data_byte = self.data[self.read_ptr + i]
-            else :
+            else:
                 data_byte = ord(self.data[self.read_ptr + i])
             v = v << 8 | data_byte
         return v
@@ -147,17 +147,17 @@ class DataBuffer:
         bytes_req += 1 if (bitcount + self.bit_position) % 8 else 0
         self.checkbuffer(bytes_req)
         if bitcount > 32:
-            raise Exception("%d bits?!! Use readint64() and do your own bit manipulations!" %(bitcount))
+            raise Exception("%d bits?!! Use readint64() and do your own bit manipulations!" % (bitcount))
         if not (0 <= self.bit_position < 8):
-            raise Exception("bit_position %d" %self.bit_position)
+            raise Exception("bit_position %d" % self.bit_position)
         byte_offset = 0
         bits_read = 0
         result = 0
         while bits_read != bitcount:
             result <<= 8
-            if sys.version_info > (3,0):
+            if sys.version_info > (3, 0):
                 data_byte = self.data[self.read_ptr + byte_offset]
-            else :
+            else:
                 data_byte = ord(self.data[self.read_ptr + byte_offset])
             result |= data_byte
             byte_offset += 1
@@ -196,9 +196,9 @@ class DataBuffer:
 
     def skipbytes(self, count):
         if self.bit_position:
-            raise Exception("Not aligned: %d" %self.bit_position)
+            raise Exception("Not aligned: %d" % self.bit_position)
         if count < 0:
-            raise Exception("Negative bytes to skip %d" %(count))
+            raise Exception("Negative bytes to skip %d" % (count))
         remaining_bytes = self.buf_size - self.read_ptr
         if count < remaining_bytes:
             self.read_ptr += count
@@ -215,4 +215,3 @@ class DataBuffer:
         self.reset()
         self.stream_offset = pos
         self.readmore()
-

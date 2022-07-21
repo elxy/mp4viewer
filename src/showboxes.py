@@ -2,13 +2,13 @@
 
 from __future__ import print_function
 import os
-import sys
 import argparse
 
 from datasource import DataBuffer
 from datasource import FileSource
 from console import ConsoleRenderer
-from tree import Tree, Attr
+from tree import Tree
+
 
 def getboxlist(buf, parent=None, debug=False):
     from isobmff.box import Box
@@ -22,6 +22,7 @@ def getboxlist(buf, parent=None, debug=False):
         print(traceback.format_exc())
     return boxes
 
+
 def get_box_node(box, args):
     from isobmff.box import Box
     node = Tree(box.boxtype, Box.getboxdesc(box.boxtype))
@@ -29,17 +30,15 @@ def get_box_node(box, args):
         if isinstance(field, Box):
             add_box(node, field, args)
         elif type(field) is not tuple:
-            raise Exception("Expected a tuple, got a %s" %type(field));
+            raise Exception("Expected a tuple, got a %s" % type(field))
         else:
             #generate fields yields a tuple of order (name, value, [formatted_value])
             value = field[1]
             if args.truncate and type(value) is list and len(value) > 10:
-                value = "[%s ... %s]" %(
-                    ','.join([str(i) for i in value[:3]]),
-                    ','.join([str(i) for i in value[-3:]])
-                )
+                value = "[%s ... %s]" % (','.join([str(i) for i in value[:3]]), ','.join([str(i) for i in value[-3:]]))
             node.add_attr(field[0], value, field[2] if len(field) == 3 else None)
     return node
+
 
 def add_box(parent, box, args):
     box_node = parent.add_child(get_box_node(box, args))
@@ -58,14 +57,20 @@ def get_tree_from_file(path, args):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Process iso-bmff file and list the boxes and their contents')
     parser.add_argument('-o', choices=['stdout','gui'], default='stdout',
         help='output format', dest='output_format')
-    parser.add_argument('-e', '--expand-arrays', action='store_false',
-        help='do not truncate long arrays', dest='truncate')
-    parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
-        help='turn on/off colors in console based output; on by default')
+    parser = argparse.ArgumentParser(description='Process iso-bmff file and list the boxes and their contents')
+    parser.add_argument('-e',
+                        '--expand-arrays',
+                        action='store_false',
+                        help='do not truncate long arrays',
+                        dest='truncate')
+    parser.add_argument('-c',
+                        '--color',
+                        choices=['on', 'off'],
+                        default='on',
+                        dest='color',
+                        help='turn on/off colors in console based output; on by default')
     parser.add_argument('--debug', action='store_true', dest='debug', help='enable debug information')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
@@ -86,4 +91,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
