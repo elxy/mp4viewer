@@ -108,21 +108,26 @@ class DataBuffer:
         self.read_ptr += length
         return s
 
-    def read_cstring(self, max_length=-1):
+    def read_cstring(self, max_length=-1, encoding='utf-8'):
         if self.bit_position:
             raise Exception("Not aligned: %d" %self.bit_position)
-        # TODO: Handle utf8
-        s = ''
-        bytes_read = 0
+        bytes = bytearray(b'')
+        pos = self.read_ptr
+        len = self.read_ptr - pos
         while self.hasmore():
-            if bytes_read == max_length:
+            if len == max_length:
                 break
-            c = self.readbyte()
-            bytes_read += 1
-            if not c:
+            if sys.version_info > (3,0):
+                byte = self.data[self.read_ptr]
+            else :
+                byte = ord(self.data[self.read_ptr])
+            self.read_ptr += 1
+            len = self.read_ptr - 1
+            if not byte:
                 break
-            s += chr(c)
-        return s, bytes_read
+            bytes.append(byte)
+        str = bytes.decode(encoding=encoding)
+        return str, len
 
     def peekint(self, bytecount):
         self.checkbuffer(bytecount)
