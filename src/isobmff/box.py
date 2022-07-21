@@ -75,12 +75,13 @@ class Box(object):
         'moof', 'traf', 'mfra', 'skip', 'meta', 'ipro', 'sinf', 'schi',
     ]
 
-    def __init__(self, buf, parent=None, is_container = False):
+    def __init__(self, buf, parent=None, is_container = False, debug=False):
         self.parent = parent
         pos = buf.current_position()
         self.buffer_offset = pos
         self.has_children = is_container
         # has_children can be updated by parse() of the derived class
+        self.debug = debug
         self.parse(buf)
         self.consumed_bytes = buf.current_position() - pos
         if self.has_children:
@@ -124,6 +125,8 @@ class Box(object):
                 self.children.append(box)
                 self.consumed_bytes += box.size
             except Exception as e:
+                if self.debug:
+                    raise e
                 print("Error parsing children of %s: %s" %(self, e))
                 buf.seekto(self.buffer_offset + self.size)
                 self.consumed_bytes = self.size
@@ -154,7 +157,7 @@ class Box(object):
         return "%s (%d bytes)" %(self.boxtype, self.size)
 
     @staticmethod
-    def getnextbox(buf, parent=None):
+    def getnextbox(buf, parent=None, debug=False):
         from . import movie
         from . import fragment
         from . import flv
@@ -172,7 +175,7 @@ class Box(object):
             box = boxmap[fourcc](buf, parent)
         else:
             container = fourcc in Box.container_boxes
-            box = Box(buf, parent, container)
+            box = Box(buf, parent, container, debug)
             if not container:
                 #TODO: Handle size zero (box extends till EOF).
                 buf.skipbytes(box.size - box.consumed_bytes)

@@ -10,12 +10,12 @@ from datasource import FileSource
 from console import ConsoleRenderer
 from tree import Tree, Attr
 
-def getboxlist(buf, parent=None):
+def getboxlist(buf, parent=None, debug=False):
     from isobmff.box import Box
     boxes = []
     try:
         while buf.hasmore():
-            box = Box.getnextbox(buf, parent)
+            box = Box.getnextbox(buf, parent, debug)
             boxes.append(box)
     except:
         import traceback
@@ -50,7 +50,7 @@ def add_box(parent, box, args):
 
 def get_tree_from_file(path, args):
     with open(path, 'rb') as fd:
-        boxes = getboxlist(DataBuffer(FileSource(fd)))
+        boxes = getboxlist(DataBuffer(FileSource(fd)), debug=args.debug)
     root = Tree(os.path.basename(path), "File")
     for box in boxes:
         add_box(root, box, args)
@@ -66,6 +66,7 @@ def main():
         help='do not truncate long arrays', dest='truncate')
     parser.add_argument('-c', '--color', choices=['on', 'off'], default='on', dest='color',
         help='turn on/off colors in console based output; on by default')
+    parser.add_argument('--debug', action='store_true', dest='debug', help='enable debug information')
     parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
     args = parser.parse_args()
 

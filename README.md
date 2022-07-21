@@ -4,12 +4,13 @@ MP4Viewer is an ISO base media file format viewer. It parses the isobmf file and
 
 Usage: cd into `src` folder and run
 
-    $ ./showboxes.py [-h] [-o {stdout,gui}] [-c {on,off}] iso-base-media-file
+    $ ./showboxes.py [-h] [--debug] [-o {stdout,gui}] [-c {on,off}] iso-base-media-file
 
     Positional arguments:
       iso-base-media-file   Path to iso media file
 
     Optional arguments:
+      --debug               Enable debug information (also in strict parsing)
       -o {stdout,gui}       Select output format (console or windows)
                             TODO: Add XML output
       -c {on,off}           Turn on/off colors in stdout; on by default.
