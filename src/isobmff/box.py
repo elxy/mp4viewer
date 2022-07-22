@@ -120,8 +120,8 @@ class Box(object):
         # Basic sanity check
         if self.parent is not None:
             if self.parent.consumed_bytes + size > self.parent.size:
-                raise Exception("Size error: parent %d, consumed %d, child says %d" %
-                                (self.parent.size, self.parent.consumed_bytes, size))
+                raise Exception("Size error: parent (%s) %d, consumed %d, child (%s) says %d" %
+                                (self.parent.boxtype, self.parent.size, self.parent.consumed_bytes, boxtype, size))
 
         self.size = size
         self.boxtype = boxtype
@@ -135,7 +135,7 @@ class Box(object):
     def parse_children(self, buf):
         while self.consumed_bytes + 8 < self.size:
             try:
-                box = Box.getnextbox(buf, self)
+                box = Box.getnextbox(buf, self, self.debug)
                 self.children.append(box)
                 self.consumed_bytes += box.size
             except Exception as e:

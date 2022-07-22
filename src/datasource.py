@@ -1,4 +1,3 @@
-import operator
 import os
 import sys
 
@@ -19,7 +18,7 @@ class FileSource(object):
         return self.size
 
 
-class Bytes(bytes):
+class Field():
 
     def set_position(self, pos, len=0):
         self.pos = pos
@@ -29,24 +28,16 @@ class Bytes(bytes):
         return self.pos, self.len
 
 
-class Str(str):
-
-    def set_position(self, pos, len=0):
-        self.pos = pos
-        self.len = len
-
-    def get_position(self):
-        return self.pos, self.len
+class Bytes(bytes, Field):
+    pass
 
 
-class Int(int):
+class Str(str, Field):
+    pass
 
-    def set_position(self, pos, len):
-        self.pos = pos
-        self.len = len
 
-    def get_position(self):
-        return self.pos, self.len
+class Int(int, Field):
+    pass
 
 
 class DataBuffer:
