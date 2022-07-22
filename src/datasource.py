@@ -147,8 +147,8 @@ class DataBuffer:
         if self.bit_position:
             raise Exception("Not aligned: %d" % self.bit_position)
         bytes = bytearray(b'')
-        pos = self.read_ptr
-        len = self.read_ptr - pos
+        pos = self.current_position()
+        len = 0
         while self.hasmore():
             if len == max_length:
                 break
@@ -157,7 +157,7 @@ class DataBuffer:
             else:
                 byte = ord(self.data[self.read_ptr])
             self.read_ptr += 1
-            len = self.read_ptr - pos
+            len = self.current_position() - pos
             if not byte:
                 break
             bytes.append(byte)
@@ -209,18 +209,18 @@ class DataBuffer:
 
     def readbits(self, bitcount):
         v = Int(self.peekbits(bitcount))
-        pos = self.read_ptr
+        pos = self.current_position()
         self.read_ptr += (bitcount + self.bit_position) // 8
-        len = self.read_ptr - pos
+        len = self.current_position() - pos
         self.bit_position = (self.bit_position + bitcount) % 8
         v.set_position(pos, len)
         return v
 
     def readint(self, bytecount):
         v = Int(self.peekint(bytecount))
-        pos = self.read_ptr
+        pos = self.current_position()
         self.read_ptr += bytecount
-        len = self.read_ptr - pos
+        len = self.current_position() - pos
         v.set_position(pos, len)
         return v
 

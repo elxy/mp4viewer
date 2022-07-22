@@ -75,7 +75,7 @@ class SchemeTypeBox(box.FullBox):
         self.scheme_version = buf.readint32()
         if self.flags & 0x000001:
             self.consumed_bytes += 8
-            self.scheme_uri = buf.read_cstring(self.size - self.consumed_bytes)[0]
+            self.scheme_uri = buf.read_cstring(self.size - self.consumed_bytes)
 
     def generate_fields(self):
         for x in super(SchemeTypeBox, self).generate_fields():

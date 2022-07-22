@@ -165,7 +165,7 @@ class HandlerBox(box.FullBox):
         self.handler = buf.readstr(4)
         buf.skipbytes(12)
         self.consumed_bytes += 20
-        self.name = buf.read_cstring(self.size - self.consumed_bytes)[0]
+        self.name = buf.read_cstring(self.size - self.consumed_bytes)
 
     def generate_fields(self):
         for x in super(HandlerBox, self).generate_fields():
@@ -300,7 +300,7 @@ class DataEntryUrlBox(box.FullBox):
 
     def parse(self, buf):
         super(DataEntryUrlBox, self).parse(buf)
-        self.location = buf.read_cstring(self.size - self.consumed_bytes)[0]
+        self.location = buf.read_cstring(self.size - self.consumed_bytes)
 
     def generate_fields(self):
         for x in super(DataEntryUrlBox, self).generate_fields():
