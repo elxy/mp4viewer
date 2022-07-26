@@ -1,12 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-from __future__ import print_function
-import os
 import argparse
+import os
+import sys
 
 from datasource import DataBuffer
 from datasource import FileSource
-from console import ConsoleRenderer
 from tree import Tree
 
 
@@ -56,10 +55,10 @@ def get_tree_from_file(path, args):
     return root
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description='Process iso-bmff file and list the boxes and their contents')
     parser.add_argument('--debug', action='store_true', dest='debug', help='enable debug information')
-    parser.add_argument('-o', choices=['stdout', 'gui'], default='stdout', help='output format', dest='output_format')
+    parser.add_argument('-o', choices=['stdout', 'gui'], default='gui', help='output format', dest='output_format')
     parser.add_argument('-e',
                         '--expand-arrays',
                         action='store_false',
@@ -71,21 +70,27 @@ def main():
                         default='on',
                         dest='color',
                         help='turn on/off colors in console based output; on by default')
-    parser.add_argument('input_file', metavar='iso-base-media-file', help='Path to iso media file')
-    args = parser.parse_args()
+    parser.add_argument('file', metavar='iso-base-media-file', help='Path to iso media file')
+    args, _ = parser.parse_known_args()
 
-    root = get_tree_from_file(args.input_file, args)
+    if args.output_format == 'gui':
+        from PySide6 import QtWidgets
+        from gui import View
 
-    renderer = None
-    if args.output_format == 'stdout':
+        app = QtWidgets.QApplication(sys.argv)
+        main_win = View(args.debug)
+        if args.file:
+            main_win.open_file(args.file)
+        main_win.show()
+        sys.exit(app.exec())
+    else:
+        from console import ConsoleRenderer
+
+        root = get_tree_from_file(args.file, args)
         renderer = ConsoleRenderer('  ')
         if args.color == 'off':
             renderer.disable_colors()
-    if args.output_format == 'gui':
-        from gui import GtkRenderer
-        renderer = GtkRenderer()
-
-    renderer.render(root)
+        renderer.render(root)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ MP4Viewer is an ISO base media file format viewer. It parses the isobmf file and
 
 Usage: cd into `src` folder and run
 
-    $ ./showboxes.py [-h] [--debug] [-o {stdout,gui}] [-c {on,off}] iso-base-media-file
+    $ ./__main__.py [-h] [--debug] [-o {stdout,gui}] [-c {on,off}] iso-base-media-file
 
     Positional arguments:
       iso-base-media-file   Path to iso media file
@@ -20,6 +20,6 @@ Screenshots:
 ![shell output](http://3.bp.blogspot.com/-APb-4LsE9LM/UkUoome4U4I/AAAAAAAADFk/ZkTpd7JkF24/s1600/mp4viewer_shell.png)
 ![window with gtk treeview](http://2.bp.blogspot.com/-4Uu3eMfMPCQ/UkUpUrfTlKI/AAAAAAAADFs/pxQSh5U81lQ/s1600/mp4viewer_gtk.png)
 
-MP4Viewer uses gtk in graphics mode and requires that [PyGObject](https://pygobject.readthedocs.io/en/latest/getting_started.html) be installed in the system for viewing results in a window.
+MP4Viewer uses QT in graphics mode and requires that [PySide6](https://pypi.org/project/PySide6/) be installed in the system for viewing results in a window.
 
 You can find more similar [MP4 tools in this page](https://github.com/video-dev/community-knowledge-base/blob/master/list-of-iso-bmff-mp4-tools.md)

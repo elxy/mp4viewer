@@ -160,10 +160,6 @@ class Box(object):
             if child.boxtype == boxtype:
                 return child
 
-    def basic_info(self):
-        yield ("type", self.boxtype)
-        yield ("size", self.size)
-
     def generate_fields(self):
         yield ("size", self.size)
 
