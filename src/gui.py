@@ -42,6 +42,7 @@ class GtkRenderer(object):
     def render(self, data):
         self.treestore = gtk.TreeStore(str)
         self.treeview = gtk.TreeView(self.treestore)
+        self.treeview.set_enable_tree_lines(True)
 
         col = gtk.TreeViewColumn(data.name)
         self.treeview.append_column(col)

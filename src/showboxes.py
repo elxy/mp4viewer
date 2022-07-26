@@ -81,7 +81,7 @@ def main():
         renderer = ConsoleRenderer('  ')
         if args.color == 'off':
             renderer.disable_colors()
-    if args.output_format == 'gui':
+    elif args.output_format == 'gui':
         from gui import GtkRenderer
         renderer = GtkRenderer()
 
