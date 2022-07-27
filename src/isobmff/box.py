@@ -36,9 +36,13 @@ class Field:
                 return pos, (pos_last - pos) + len_last
         raise ValueError("Expected Position, got a %s" % type(self.field))
 
-    def get_display_value(self, truncate: bool = False):
+    def get_display_value(self, truncate: bool = True):
         if self.display_value:
             return str(self.display_value)
+        if truncate and isinstance(self.field, list) and len(self.field) > 10:
+            head = ','.join([str(i) for i in self.field[:3]])
+            tail = ','.join([str(i) for i in self.field[-3:]])
+            return f'[{head} ... {tail}]'
         return str(self.field)
 
 

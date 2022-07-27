@@ -23,19 +23,15 @@ def getboxlist(buf, parent=None, debug=False):
 
 
 def get_box_node(box, args):
-    from isobmff.box import Box
+    from isobmff.box import Box, Field
     node = Tree(box.boxtype, Box.getboxdesc(box.boxtype))
     for field in box.generate_fields():
         if isinstance(field, Box):
             add_box(node, field, args)
-        elif type(field) is not tuple:
-            raise Exception("Expected a tuple, got a %s" % type(field))
-        else:
-            #generate fields yields a tuple of order (name, value, [formatted_value])
-            value = field[1]
-            if args.truncate and type(value) is list and len(value) > 10:
-                value = "[%s ... %s]" % (','.join([str(i) for i in value[:3]]), ','.join([str(i) for i in value[-3:]]))
-            node.add_attr(field[0], value, field[2] if len(field) == 3 else None)
+            continue
+        elif not isinstance(field, Field):
+            raise Exception("Expected a Field, got a %s" % type(field))
+        node.add_attr(field.name, field.get_display_value())
     return node
 
 

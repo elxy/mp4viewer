@@ -59,6 +59,7 @@ class Int(int, Position):
         ret.set_position(*self.get_position())
         return ret
 
+
 class DataBuffer:
     CHUNK_SIZE = 50
 
@@ -122,6 +123,8 @@ class DataBuffer:
             raise Exception("Attempt to read beyond buffer %d %d %d", self.read_ptr, self.buf_size, length)
 
     def peekstr(self, length, offset=0):
+        if length == 0:
+            return ''
         self.checkbuffer(length + offset)
         if self.bit_position:
             raise Exception("Not aligned: %d" % self.bit_position)
