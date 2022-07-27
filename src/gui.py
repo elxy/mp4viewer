@@ -1,6 +1,7 @@
 import enum
 
 import xml.etree.ElementTree as ET
+from io import StringIO
 from typing import Dict, Callable, Optional, Union
 
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -91,6 +92,10 @@ class AttrView(QtWidgets.QTableWidget):
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setHorizontalHeaderLabels(("Field", "Value"))
         self.verticalHeader().hide()
+        header = self.horizontalHeader()
+        header.setMinimumSectionSize(160)
+        self.setMinimumWidth(self.columnCount() * header.minimumSectionSize())
+        self.setHorizontalScrollBarPolicy(QtGui.Qt.ScrollBarAlwaysOff)
 
         self.itemSelectionChanged.connect(self.on_attr_selected)
 
@@ -179,6 +184,34 @@ class TreeView(QtWidgets.QTreeWidget):
         self.resizeColumnToContents(0)
 
 
+class HexArea(QtWidgets.QWidget):
+
+    def __init__(self, callbacks: Dict[Events, Callable[..., None]], **kargs) -> None:
+        super().__init__(**kargs)
+        # self._layout = QtWidgets.QHBoxLayout(parent=parent)
+
+        # self._offset_area = QtWidgets.QTextEdit(parent=parent)
+        self._hex_area = QtWidgets.QTextEdit(self)
+        self._hex_area.setReadOnly(True)
+        self._hex_area.setHorizontalScrollBarPolicy(QtGui.Qt.ScrollBarAlwaysOff)
+        self._hex_area.setVerticalScrollBarPolicy(QtGui.Qt.ScrollBarAlwaysOn)
+        # self._ascii_area = QtWidgets.QTextEdit(parent=parent)
+        # self._scroll_bar = QtWidgets.QScrollBar(parent=parent)
+
+        # self.text_areas = [self._offset_area, self._hex_area, self._ascii_area]
+        # for text_area in self.text_areas:
+            # text_area.setReadOnly(True)
+
+        # self._scroll_bar.sliderMoved.connect(self.on_scroll_bar)
+
+    # def on_scroll_bar(self, value: int) -> None:
+    def open_file(self, file_name: str) -> None:
+        self.file = open(file_name, 'rb')
+        data = self.file.read()
+
+
+
+
 class View(QtWidgets.QMainWindow):
     STYLE_SHEET = \
 '''
@@ -202,11 +235,19 @@ QWidget {
 
         self._tree_view = TreeView(callbacks=callbacks)
         self._attr_view = AttrView(callbacks=callbacks)
-        self._splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal, self)
-        self._splitter.addWidget(self._tree_view)
-        self._splitter.addWidget(self._attr_view)
-        self._splitter.setChildrenCollapsible(False)
-        self.setCentralWidget(self._splitter)
+        self._hex_area = HexArea(callbacks=callbacks)
+
+        self._tree_splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal, self)
+        self._tree_splitter.setChildrenCollapsible(False)
+        self._tree_splitter.addWidget(self._tree_view)
+
+        self._attr_splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical, self._tree_splitter)
+        self._attr_splitter.setChildrenCollapsible(False)
+        self._attr_splitter.addWidget(self._attr_view)
+        self._attr_splitter.addWidget(self._hex_area)
+
+        self._tree_splitter.addWidget(self._attr_splitter)
+        self.setCentralWidget(self._tree_splitter)
 
         self.create_actions()
 
