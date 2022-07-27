@@ -11,3 +11,7 @@ def parse_iso639_2_15bit(value):
 def get_utc_from_seconds_since_1904(seconds):
     from datetime import datetime, timedelta
     return datetime(1904, 1, 1) + timedelta(days=seconds / 86400, seconds=seconds % 86400)
+
+
+def get_fixed_float_16dot16(fixed):
+    return (fixed >> 16) + (fixed & 0xffff) / 65536.0

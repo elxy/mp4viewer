@@ -18,7 +18,11 @@ class FileSource(object):
         return self.size
 
 
-class Field():
+class Position():
+
+    def __init__(self):
+        self.pos = 0
+        self.len = 0
 
     def set_position(self, pos, len=0):
         self.pos = pos
@@ -28,17 +32,32 @@ class Field():
         return self.pos, self.len
 
 
-class Bytes(bytes, Field):
-    pass
+class Bytes(bytes, Position):
+
+    def __init__(self, *args):
+        bytes.__init__(self)
 
 
-class Str(str, Field):
-    pass
+class Str(str, Position):
+
+    def __init__(self, *args):
+        str.__init__(self)
 
 
-class Int(int, Field):
-    pass
+class Int(int, Position):
 
+    def __init__(self, *args):
+        int.__init__(self)
+
+    def __and__(self, __x: int):
+        ret = Int(int(self) & __x)
+        ret.set_position(*self.get_position())
+        return ret
+
+    def __rand__(self, __x: int):
+        ret = Int(__x & int(self))
+        ret.set_position(*self.get_position())
+        return ret
 
 class DataBuffer:
     CHUNK_SIZE = 50

@@ -1,10 +1,45 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from typing import Any, Optional
+
+from datasource import Position
+
 
 def string_to_hex(s):
     x = ["%02x" % ord(ch) for ch in s]
     return " ".join(x)
+
+
+class Field:
+
+    def __init__(self, name: str, field: Any, display_value: Optional[str] = None, desc: Optional[str] = None) -> None:
+        self.name = name
+        self.field = field
+        if isinstance(self.field, Position):
+            pass
+        elif isinstance(self.field[0], Position):
+            pass
+        else:
+            print(field)
+            raise ValueError("Expected Position, got a %s" % type(self.field))
+        self.display_value = display_value
+        self.desc = desc
+
+    def get_position(self):
+        if isinstance(self.field, Position):
+            return self.field.get_position()
+        elif isinstance(self.field, list):
+            if all([isinstance(field, Position) for field in self.field]):
+                pos, _ = self.field[0].get_position()
+                pos_last, len_last = self.field[-1].get_position()
+                return pos, (pos_last - pos) + len_last
+        raise ValueError("Expected Position, got a %s" % type(self.field))
+
+    def get_display_value(self, truncate: bool = False):
+        if self.display_value:
+            return str(self.display_value)
+        return str(self.field)
 
 
 # Set container flag for pure containers. Boxes with data and children should be
@@ -161,7 +196,7 @@ class Box(object):
                 return child
 
     def generate_fields(self):
-        yield ("size", self.size)
+        yield Field("size", self.size)
 
     def __str__(self):
         return "%s (%d bytes)" % (self.boxtype, self.size)
@@ -210,8 +245,8 @@ class FullBox(Box):
     def generate_fields(self):
         for x in super(FullBox, self).generate_fields():
             yield x
-        yield ("version", self.version)
-        yield ("flags", "0x%06X" % self.flags)
+        yield Field("version", self.version)
+        yield Field("flags", self.flags, "0x%06X" % self.flags)
 
 
 class FileType(Box):
@@ -228,9 +263,9 @@ class FileType(Box):
 
     def generate_fields(self):
         super(FileType, self).generate_fields()
-        yield ("major brand", self.major_brand)
-        yield ("minor version", self.minor_version)
-        yield ("brands", ','.join(self.brands))
+        yield Field("major brand", self.major_brand)
+        yield Field("minor version", self.minor_version)
+        yield Field("brands", self.brands)
 
     def __str__(self):
         return super(FileType, self).__str__() + " %s %d with %d brands %s" % (self.major_brand, self.minor_version,

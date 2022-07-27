@@ -11,10 +11,9 @@ class TrackEncryptionBox(box.FullBox):
         if self.version == 0:
             buf.skipbytes(1)
         else:
-            val = buf.readbyte()
-            self.default_crypt_byte_block = (val & 0xf0) >> 4
-            self.default_skip_byte_block = val & 0x0f
-        self.default_isProtected = buf.readbyte() == 1
+            self.default_crypt_byte_block = buf.readbits(4)
+            self.default_skip_byte_block = buf.readbits(4)
+        self.default_isProtected = buf.readbyte()
         self.default_Per_Sample_IV_size = buf.readbyte()
         self.default_KID = []
         for _ in range(16):
@@ -29,13 +28,14 @@ class TrackEncryptionBox(box.FullBox):
         for x in super(TrackEncryptionBox, self).generate_fields():
             yield x
         if self.version != 0:
-            yield ("Default crypt byte block", self.default_crypt_byte_block)
-            yield ("Default skip byte block", self.default_skip_byte_block)
-        yield ("Default is protected", self.default_isProtected)
-        yield ("Default KID", "0x" + "%x" * 16 % tuple(self.default_KID))
+            yield box.Field("Default crypt byte block", self.default_crypt_byte_block)
+            yield box.Field("Default skip byte block", self.default_skip_byte_block)
+        yield box.Field("Default is protected", self.default_isProtected)
+        yield box.Field("Default KID", self.default_KID, "0x" + "%x" * 16 % tuple(self.default_KID))
         if self.default_isProtected == 1 and self.default_Per_Sample_IV_size == 0:
-            yield ("Default constant IV size", self.default_constant_IV_size)
-            yield ("Default constant IV", "0x" + "%x" * self.default_constant_IV_size % tuple(self.default_constant_IV))
+            yield box.Field("Default constant IV size", self.default_constant_IV_size)
+            yield box.Field("Default constant IV", self.default_constant_IV,
+                        "0x" + "%x" * self.default_constant_IV_size % tuple(self.default_constant_IV))
 
 
 class ProtectionSystemSpecificHeader(box.FullBox):
@@ -59,12 +59,12 @@ class ProtectionSystemSpecificHeader(box.FullBox):
     def generate_fields(self):
         for x in super(ProtectionSystemSpecificHeader, self).generate_fields():
             yield x
-        yield ("System ID", "0x" + "%x" * 16 % tuple(self.system_id))
+        yield box.Field("System ID", self.system_id, "0x" + "%x" * 16 % tuple(self.system_id))
         if self.version > 0:
-            yield ("KID count", self.KID_count)
+            yield box.Field("KID count", self.KID_count)
             for k in self.KIDs:
-                yield ("KID", "0x" + "%x" * 16 % tuple(k))
-        yield ("Data Size", self.data_size)
+                yield box.Field("KID", k, "0x" + "%x" * 16 % tuple(k))
+        yield box.Field("Data Size", self.data_size)
 
 
 class SchemeTypeBox(box.FullBox):
@@ -80,10 +80,10 @@ class SchemeTypeBox(box.FullBox):
     def generate_fields(self):
         for x in super(SchemeTypeBox, self).generate_fields():
             yield x
-        yield ("Scheme type", self.scheme_type)
-        yield ("Scheme version", "0x%x" % (self.scheme_version))
+        yield box.Field("Scheme type", self.scheme_type)
+        yield box.Field("Scheme version", self.scheme_version, "0x%x" % (self.scheme_version))
         if self.flags & 0x000001:
-            yield ("Scheme URI", self.scheme_uri)
+            yield box.Field("Scheme URI", self.scheme_uri)
 
 
 class OriginalFormatBox(box.Box):
@@ -95,7 +95,7 @@ class OriginalFormatBox(box.Box):
     def generate_fields(self):
         for x in super(OriginalFormatBox, self).generate_fields():
             yield x
-        yield ("Original format", self.data_format)
+        yield box.Field("Original format", self.data_format)
 
 
 boxmap = {

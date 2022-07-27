@@ -12,7 +12,7 @@ class MovieFragmentHeader(box.FullBox):
     def generate_fields(self):
         for x in super(MovieFragmentHeader, self).generate_fields():
             yield x
-        yield ("Sequence number", self.sequence_number)
+        yield box.Field("Sequence number", self.sequence_number)
 
 
 class TrackFragmentHeader(box.FullBox):
@@ -36,19 +36,19 @@ class TrackFragmentHeader(box.FullBox):
     def generate_fields(self):
         for x in super(TrackFragmentHeader, self).generate_fields():
             yield x
-        yield ("Track id", self.track_id)
+        yield box.Field("Track id", self.track_id)
         if self.flags & 0x000001:
-            yield ("Base data offset", self.base_data_offset)
+            yield box.Field("Base data offset", self.base_data_offset)
         if self.flags & 0x000002:
-            yield ("Sample description index", self.sample_description_index)
+            yield box.Field("Sample description index", self.sample_description_index)
         if self.flags & 0x000008:
-            yield ("Default sample duration", self.default_sample_duration)
+            yield box.Field("Default sample duration", self.default_sample_duration)
         if self.flags & 0x000010:
-            yield ("Default sample size", self.default_sample_size)
+            yield box.Field("Default sample size", self.default_sample_size)
         if self.flags & 0x000020:
-            yield ("Defalt sample flags", self.default_sample_flags)
-        yield ("Duration is empty", self.duration_is_empty)
-        yield ("Default base is moof", self.default_base_is_moof)
+            yield box.Field("Defalt sample flags", self.default_sample_flags)
+        yield box.Field("Duration is empty", self.flags, self.duration_is_empty)
+        yield box.Field("Default base is moof", self.flags, self.default_base_is_moof)
 
 
 class TrackFragmentRun(box.FullBox):
@@ -85,11 +85,11 @@ class TrackFragmentRun(box.FullBox):
     def generate_fields(self):
         for x in super(TrackFragmentRun, self).generate_fields():
             yield x
-        yield ('Sample count', self.sample_count)
+        yield box.Field('Sample count', self.sample_count)
         if self.flags & 0x000001:
-            yield ('Data offset', self.data_offset)
+            yield box.Field('Data offset', self.data_offset)
         if self.flags & 0x000004:
-            yield ('First sample flags', self.first_sample_flags)
+            yield box.Field('First sample flags', self.first_sample_flags)
         i = 0
         for s in self.samples:
             i += 1
@@ -108,7 +108,7 @@ class TrackFragmentRun(box.FullBox):
                 if len(val):
                     val += ", "
                 val += "compositional time offset=%d" % (s[3])
-            yield ('  Sample %d' % (i), val)
+            yield box.Field('  Sample %d' % (i), val)
 
 
 class SampleAuxInfoSizes(box.FullBox):
@@ -129,13 +129,13 @@ class SampleAuxInfoSizes(box.FullBox):
         for x in super(SampleAuxInfoSizes, self).generate_fields():
             yield x
         if self.flags & 1:
-            yield ("Aux info type", self.aux_info_type)
-            yield ("Aux info type parameter", self.aux_info_type_parameter)
+            yield box.Field("Aux info type", self.aux_info_type)
+            yield box.Field("Aux info type parameter", self.aux_info_type_parameter)
         if self.default_sample_info_size:
-            yield ("Default sample info size", self.default_sample_info_size)
+            yield box.Field("Default sample info size", self.default_sample_info_size)
         else:
             for sample in self.samples:
-                yield ("  Sample info size", sample)
+                yield box.Field("  Sample info size", sample)
 
 
 class SampleAuxInfoOffsets(box.FullBox):
@@ -158,11 +158,11 @@ class SampleAuxInfoOffsets(box.FullBox):
         for x in super(SampleAuxInfoOffsets, self).generate_fields():
             yield x
         if self.flags & 1:
-            yield ("Aux info type", self.aux_info_type)
-            yield ("Aux info type parameter", self.aux_info_type_parameter)
-        yield ("Entry Count", self.entry_count)
+            yield box.Field("Aux info type", self.aux_info_type)
+            yield box.Field("Aux info type parameter", self.aux_info_type_parameter)
+        yield box.Field("Entry Count", self.entry_count)
         for offset in self.offsets:
-            yield ("  Offset", offset)
+            yield box.Field("  Offset", offset)
 
 
 class TrackFragmentDecodeTime(box.FullBox):
@@ -177,7 +177,7 @@ class TrackFragmentDecodeTime(box.FullBox):
     def generate_fields(self):
         for x in super(TrackFragmentDecodeTime, self).generate_fields():
             yield x
-        yield ("Base media decode time", self.decode_time)
+        yield box.Field("Base media decode time", self.decode_time)
 
 
 class SegmentType(box.FileType):
@@ -206,29 +206,27 @@ class SegmentIndexBox(box.FullBox):
         self.references = []
         self.reference_count = buf.readint16()
         for _ in range(self.reference_count):
-            val = buf.readint32()
-            ref_type = (val & 0x80000000) >> 31
-            ref_size = val & 0x7FFFFFFF
+            ref_type = buf.readbits(1)
+            ref_size = buf.readbits(31)
             ref_duration = buf.readint32()
-            val = buf.readint32()
-            starts_with_sap = (val & 0x80000000) != 0
-            sap_type = (val & 0x70000000) >> 28
-            sap_delta_time = val & 0x0FFFFFFF
+            starts_with_sap = buf.readbits(1)
+            sap_type = buf.readbits(3)
+            sap_delta_time = buf.readbits(28)
             self.references.append((ref_type, ref_size, ref_duration, starts_with_sap, sap_type, sap_delta_time))
 
     def generate_fields(self):
         for x in super(SegmentIndexBox, self).generate_fields():
             yield x
-        yield ('Reference ID', self.reference_id)
-        yield ('Timescale', self.timescale)
-        yield ('Earliest presentation time', self.earliest_presentation_time)
-        yield ('First offset', self.first_offset)
-        yield ('Reference count', self.reference_count)
+        yield box.Field('Reference ID', self.reference_id)
+        yield box.Field('Timescale', self.timescale)
+        yield box.Field('Earliest presentation time', self.earliest_presentation_time)
+        yield box.Field('First offset', self.first_offset)
+        yield box.Field('Reference count', self.reference_count)
         i = 0
         for ref in self.references:
             i += 1
-            yield ('  Reference %d' % (i),
-                   'type=%d, size=%d, duration=%d, starts with SAP=%r, SAP type=%d, SAP delta time=%d' % ref)
+            yield box.Field('  Reference %d' % (i), ref,
+                            'type=%d, size=%d, duration=%d, starts with SAP=%r, SAP type=%d, SAP delta time=%d' % ref)
 
 
 boxmap = {
